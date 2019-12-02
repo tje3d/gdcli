@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"tmobile/gdlib"
+	"gdlib/gdlib"
 )
 
 func main() {
