@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -21,33 +23,28 @@ func sendRequest(path string, options RequestOptions) string {
 	var req *http.Request
 
 	client := &http.Client{}
-	url := generateURLFromPath(path)
+	fullURL := generateURLFromPath(path)
+	requestValues := url.Values{}
+	appendRequestValues(options.data, &requestValues)
+
+	// ─── CREATE REQUEST ─────────────────────────────────────────────────────────────
 
 	if options.data == "" || options.method == "GET" {
-		req, _ = http.NewRequest(options.method, url, nil)
+		req, _ = http.NewRequest(options.method, fullURL, nil)
 	} else {
-		req, _ = http.NewRequest(options.method, url, strings.NewReader(options.data))
+		req, _ = http.NewRequest(options.method, fullURL, strings.NewReader(requestValues.Encode()))
 	}
 
-	if options.method == "GET" && options.data != "" {
-		var data map[string]interface{}
+	// ─── BIND REQUEST VALUES ────────────────────────────────────────────────────────
 
-		err := json.Unmarshal([]byte(options.data), &data)
-
-		if err == nil {
-			query := req.URL.Query()
-
-			for key, val := range data {
-				str, ok := val.(string)
-
-				if ok {
-					query.Add(key, str)
-				}
-			}
-
-			req.URL.RawQuery = query.Encode()
-		}
+	if options.method == "GET" {
+		req.URL.RawQuery = requestValues.Encode()
+	} else if options.method == "POST" {
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Add("Content-Length", strconv.Itoa(len(requestValues.Encode())))
 	}
+
+	// ─── ADD HEADERS ────────────────────────────────────────────────────────────────
 
 	req.Header.Add("APPVERSION", "web")
 
@@ -65,6 +62,8 @@ func sendRequest(path string, options RequestOptions) string {
 		req.Header.Add("X-Token", options.token)
 	}
 
+	// ─── SEND REQUEST ───────────────────────────────────────────────────────────────
+
 	response, err := client.Do(req)
 
 	if err != nil {
@@ -79,4 +78,26 @@ func sendRequest(path string, options RequestOptions) string {
 
 func generateURLFromPath(path string) string {
 	return fmt.Sprintf("https://core.gap.im/v1/%s.json", path)
+}
+
+func appendRequestValues(input string, requestValues *url.Values) {
+	if input == "" {
+		return
+	}
+
+	var data map[string]interface{}
+
+	err := json.Unmarshal([]byte(input), &data)
+
+	if err != nil {
+		return
+	}
+
+	for key, val := range data {
+		str, ok := val.(string)
+
+		if ok {
+			requestValues.Add(key, str)
+		}
+	}
 }
