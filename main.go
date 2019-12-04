@@ -8,7 +8,6 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/op/go-logging"
-	uuid "github.com/satori/go.uuid"
 )
 
 var log = logging.MustGetLogger("default")
@@ -84,8 +83,8 @@ func verifyCode(mobile string) (err error) {
 		return err
 	}
 
-	uuid := uuid.Must(uuid.NewV4())
-	resultUser := gdlib.User(uuid.String(), version, company, verifyCode, mobile)
+	uuid := gdlib.GenerateUUID()
+	resultUser := gdlib.User(uuid, version, company, verifyCode, mobile)
 
 	var data map[string]interface{}
 
