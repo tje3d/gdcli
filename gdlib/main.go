@@ -77,7 +77,8 @@ func sendRequest(path string, options RequestOptions) string {
 }
 
 func generateURLFromPath(path string) string {
-	return fmt.Sprintf("https://core.gap.im/v1/%s.json", path)
+	const url = "https://core.gap.im/v1/%s.json"
+	return fmt.Sprintf(url, path)
 }
 
 func appendRequestValues(input string, requestValues *url.Values) {
