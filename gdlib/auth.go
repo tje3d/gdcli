@@ -2,7 +2,6 @@ package gdlib
 
 import (
 	"encoding/json"
-	"errors"
 
 	"github.com/op/go-logging"
 )
@@ -23,31 +22,31 @@ func UserAdd(mobile string) string {
 }
 
 // DoUserAdd send user add request and handle response
-func DoUserAdd(mobile string) (err error) {
+func DoUserAdd(mobile string) string {
 	resultUserAdd := UserAdd(mobile)
 
 	var data map[string]interface{}
+	var err error
 
 	err = json.Unmarshal([]byte(resultUserAdd), &data)
 
 	if err != nil {
-		return
+		return err.Error()
 	}
 
 	if data["status"] == "success" {
-		return
+		return ""
 	}
 
 	msg, ok := data["message"].(string)
 
 	if ok {
-		err = errors.New(msg)
-	} else {
-		err = errors.New("Failed")
+		return msg
 	}
 
 	log.Debug(resultUserAdd)
-	return
+
+	return "Failed"
 }
 
 // User ...

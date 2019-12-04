@@ -24,10 +24,10 @@ func main() {
 
 	fullMobile := "+" + countryCode + mobile
 
-	err = gdlib.DoUserAdd(fullMobile)
+	errStr := gdlib.DoUserAdd(fullMobile)
 
-	if err != nil {
-		log.Error(err.Error())
+	if errStr != "" {
+		log.Error(errStr)
 		return
 	}
 
