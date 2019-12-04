@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/manifoldco/promptui"
 	"github.com/op/go-logging"
-	uuid "github.com/satori/go.uuid"
 )
 
 var log = logging.MustGetLogger("default")
@@ -76,44 +74,4 @@ func User(
 	}
 
 	return sendRequest("user", options)
-}
-
-// DoUser send user request and parse response
-func DoUser(mobile string) (err error) {
-	const label = "Verify Code"
-	const version = "1.0.0"
-	const company = "GAP Cli"
-
-	prompt3 := promptui.Prompt{Label: label}
-	verifyCode, err := prompt3.Run()
-
-	if err != nil {
-		return
-	}
-
-	uuid := uuid.Must(uuid.NewV4())
-	resultUser := User(uuid.String(), version, company, verifyCode, mobile)
-
-	var data map[string]interface{}
-
-	err = json.Unmarshal([]byte(resultUser), &data)
-
-	if err != nil {
-		return err
-	}
-
-	if data["status"] == "success" {
-		return
-	}
-
-	msg, ok := data["message"].(string)
-
-	if ok {
-		err = errors.New(msg)
-	} else {
-		err = errors.New("Failed")
-	}
-
-	log.Debug(resultUser)
-	return
 }
